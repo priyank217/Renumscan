@@ -1,0 +1,7 @@
+requests
+beautifulsoup4
+scapy
+cryptography
+jinja2
+lxml
+jsbeautifier

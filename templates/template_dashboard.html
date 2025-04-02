@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Report for {{ domain }}</title>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .dashboard-header {
+            background-color: #1b1d1e;
+            color: white;
+            padding: 15px 20px;
+            border-bottom: 3px solid #07a3d2;
+            margin-bottom: 20px;
+        }
+        
+        .panel {
+            background-color: white;
+            border: 1px solid #d6d6d6;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .panel-title {
+            background-color: #f0f0f0;
+            border-bottom: 1px solid #d6d6d6;
+            padding: 10px 15px;
+            font-weight: bold;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .panel-content {
+            padding: 15px;
+        }
+        
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        
+        th {
+            background-color: #f0f0f0;
+            text-align: left;
+            padding: 8px 10px;
+            border-bottom: 1px solid #d6d6d6;
+            font-weight: bold;
+        }
+        
+        td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #e6e6e6;
+        }
+        
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .search-controls {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-bottom: 1px solid #d6d6d6;
+        }
+        
+        .time-range-picker {
+            background-color: white;
+            border: 1px solid #d6d6d6;
+            border-radius: 3px;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        
+        .primary {
+            color: #07a3d2;
+        }
+        
+        .success {
+            color: #5cb85c;
+        }
+        
+        .warning {
+            color: #f0ad4e;
+        }
+        
+        .danger {
+            color: #d9534f;
+        }
+        
+        .auto-scroll {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body class="p-4">
+<div class="dashboard-header flex justify-between items-center">
+<h1 class="text-xl font-bold">Renumscan</h1>
+<div class="flex items-center space-x-4">
+<div class="text-gray-300">{{ domain }}</div>
+</div>
+</div>
+
+<!-- First Row: Summary Charts -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+<!-- Subdomain Overview -->
+<div class="panel">
+<div class="panel-title">Subdomain Overview</div>
+<div class="panel-content">
+<div class="chart-container">
+<canvas id="subdomainChart"></canvas>
+</div>
+</div>
+</div>
+<!-- Web Server Technologies -->
+<div class="panel">
+<div class="panel-title">Web Server Technologies</div>
+<div class="panel-content">
+<div class="chart-container">
+<canvas id="webserverChart"></canvas>
+</div>
+</div>
+</div>
+<!-- Technology Distribution -->
+<div class="panel">
+<div class="panel-title">Top 5 Subdomain with most number of endpoint</div>
+<div class="panel-content">
+<div class="chart-container">
+<canvas id="topSubdomainsChart"></canvas>
+</div>
+</div>
+</div></div>
+<!-- Second Row: More Charts -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"><div class="panel">
+<div class="panel-title">Technology Footprint</div>
+<div class="panel-content">
+<div class="chart-container">
+<canvas id="technologyChart"></canvas>
+</div>
+</div>
+</div>
+<!-- Top 5 Subdomains -->
+<!-- DNS Records -->
+<div class="panel">
+<div class="panel-title">DNS Configuration Overview</div>
+<div class="panel-content">
+<div class="chart-container">
+<canvas id="dnsDistributionChart"></canvas>
+</div>
+</div>
+</div>
+</div>
+<!-- WHOIS and DNS Reports -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+<!-- WHOIS Report -->
+<div class="panel">
+<div class="panel-title">Domain Registration Details for {{ domain }}</div>
+<div class="panel-content auto-scroll">
+<table>
+<tbody>
+<tr>
+<th>Domain Name</th>
+<td>{{ whois_final.domain_name }}</td>
+</tr>
+<tr>
+<th>Registrar URL</th>
+<td>{{ whois_final.registrar_url }}</td>
+</tr>
+<tr>
+<th>Registry Domain ID</th>
+<td>{{ whois_final.registry_domain_id }}</td>
+</tr>
+<tr>
+<th>Updated Date</th>
+<td>{{ whois_final.updated_date }}</td>
+</tr>
+<tr>
+<th>Expiration Date</th>
+<td>{{ whois_final.expiration_date }}</td>
+</tr>
+<tr>
+<th>Admin Name</th>
+<td>{{ whois_final.admin_name }}</td>
+</tr>
+<tr>
+<th>Admin Email</th>
+<td>{{ whois_final.admin_email }}</td>
+</tr>
+</tbody>
+</table>
+<p class="text-red-500 mt-2">{{ warning_message }}</p>
+</div>
+</div>
+<!-- DNS Recon Report -->
+<div class="panel">
+<div class="panel-title">DNS Server Records for {{ domain }}</div>
+<div class="panel-content auto-scroll">
+            {% for record_type, records in dns_results.items() %}
+            <h3 class="font-bold mt-3 mb-2">{{ record_type }} Records</h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Name</th>
+                        {% if record_type == 'TXT' %}
+                        <th>String</th>
+                        {% endif %}
+                    </tr>
+</thead>
+<tbody>
+                    {% for record in records %}
+                    <tr>
+<td>{{ record['type'] }}</td>
+<td>{{ record['name'] }}</td>
+                        {% if record_type == 'TXT' %}
+                        <td>{{ record['string'] }}</td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+</table>
+            {% endfor %}
+        </div>
+</div>
+<!-- Subdomain Report -->
+<div class="panel">
+<div class="panel-title">Discovered Subdomains for {{ domain }}</div>
+<div class="panel-content auto-scroll">
+<table>
+<thead>
+<tr>
+<th>Subdomain</th>
+</tr>
+</thead>
+<tbody>
+                    {% for item in data.subdomains %}
+                    <tr>
+<td><a class="text-blue-600" href="http://{{ item }}" target="_blank">{{ item }}</a></td>
+</tr>
+                    {% endfor %}
+                </tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Third-Party Services and Endpoint Reports -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+    <!-- Third-Party Services -->
+    <div class="panel">
+    <div class="panel-title">Third-Party Integrations</div>
+    <div class="panel-content auto-scroll">
+    <!-- Security Notes -->
+    {% if service_analysis.security_notes %}
+    <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded">
+    <h3 class="font-bold mb-2 text-red-700">Security Notes</h3>
+    <ul class="list-disc pl-5">
+    {% for note in service_analysis.security_notes %}
+    <li>{{ note }}</li>
+    {% endfor %}
+    </ul>
+    </div>
+    {% endif %}
+    
+    <!-- Unknown Services -->
+    {% if service_analysis.unknown_services %}
+    <div class="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
+    <h3 class="font-bold mb-2 text-yellow-700">Unclassified Records</h3>
+    <div class="space-y-1">
+    {% for service in service_analysis.unknown_services %}
+    <div class="font-mono text-sm">{{ service }}</div>
+    {% endfor %}
+    </div>
+    </div>
+    {% endif %}
+    
+    <!-- Detected Services -->
+    <div class="mb-4">
+    <h3 class="font-bold mb-2">Detected Services</h3>
+    <div class="grid grid-cols-2 gap-2">
+    {% for service, count in service_analysis.detected_services.items() %}
+    <div class="p-2 bg-gray-100 rounded flex justify-between">
+    <span>{{ service }}</span>
+    <span class="font-bold">{{ count }}</span>
+    </div>
+    {% endfor %}
+    </div>
+    </div>
+    </div>
+    </div>
+    
+    <!-- Endpoint Report -->
+    <div class="panel">
+    <div class="panel-title">Discovered endpoint for Active Subdomain</div>
+    <div class="panel-content auto-scroll">
+    {% for url, endpoints in report.items() %}
+    <h3 class="font-bold mt-3 mb-2">{{ url }}</h3>
+    <table>
+    <thead>
+    <tr>
+    <th>Endpoint</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for endpoint in endpoints %}
+    <tr>
+    <td><a class="text-blue-600" href="{{ endpoint }}" target="_blank">{{ endpoint }}</a></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+    {% endfor %}
+    </div>
+    </div>
+    </div>
+<!-- Web Application Discoveries -->
+<div class="panel mb-4">
+<div class="panel-title">Web Application Discoveries for {{ domain }}</div>
+<div class="panel-content auto-scroll">
+<div class="mb-2 flex flex-wrap gap-4"></div><table>
+<thead>
+<tr>
+<th>URL</th>
+<th>Webserver</th>
+<th>Host</th>
+<th>Chain Status Codes</th>
+<th>Status Code</th>
+<th>Technologies</th>
+<th>Final URL</th>
+</tr>
+<tr>
+        {% for col in ['url', 'webserver', 'host', 'chain-status-codes', 'status-code', 'technologies', 'final-url'] %}
+        <td class="px-2 py-1 border">
+<select class="filter-dropdown w-full text-sm border rounded px-1 py-0.5" data-column="{{ loop.index0 }}">
+<option value="">All</option>
+            {% for val in httpx_column_filters[col] %}
+            <option value="{{ val }}">{{ val }}</option>
+            {% endfor %}
+          </select>
+</td>
+        {% endfor %}
+      </tr>
+</thead>
+<tbody>
+                {% for result in httpx_results %}
+                <tr>
+<td><a class="text-blue-600" href="{{ result.url }}" target="_blank">{{ result.url }}</a></td>
+<td>{{ result.webserver }}</td>
+<td>{{ result.host }}</td>
+<td>{{ result['chain-status-codes'] }}</td>
+<td>{{ result['status-code'] }}</td>
+<td>{{ result.technologies }}</td>
+<td><a class="text-blue-600" href="{{ result['final-url'] }}" target="_blank">{{ result['final-url'] }}</a></td>
+</tr>
+                {% endfor %}
+            </tbody>
+</table>
+</div>
+</div>
+<!-- Certificate Information -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+<!-- Certificate Info -->
+<div class="panel">
+<div class="panel-title">SSL Certificate Details for {{ domain }}</div>
+<div class="panel-content auto-scroll">
+<table>
+<tbody>
+                    {% for field, value in cert_info.items() %}
+                    <tr>
+<th>{{ field }}</th>
+<td>{{ value }}</td>
+</tr>
+                    {% endfor %}
+                </tbody>
+</table>
+</div>
+</div>
+<!-- SSL/TLS Versions -->
+<div class="panel">
+<div class="panel-title">Supported SSL/TLS Version of {{ domain }}</div>
+<div class="panel-content auto-scroll">
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+                    {% for data in protocols %}
+                    <tr>
+<td>{{ data.type }}</td>
+<td>{{ data.enabled }}</td>
+</tr>
+                    {% endfor %}
+                </tbody>
+</table>
+</div>
+</div>
+<!-- SSL Ciphers -->
+<div class="panel">
+<div class="panel-title">Supported Cipher Suites of {{ domain }}</div>
+<div class="panel-content auto-scroll">
+<table>
+<thead>
+<tr>
+<th>Cipher Version</th>
+<th>Cipher Name</th>
+<th>Bits</th>
+<th>Cipher Status</th>
+</tr>
+</thead>
+<tbody>
+                    {% for data in ciphers %}
+                    <tr>
+<td>{{ data.sslversion }}</td>
+<td>{{ data.cipher }}</td>
+<td>{{ data.bits }}</td>
+<td>{{ data.status }}</td>
+</tr>
+                    {% endfor %}
+                </tbody>
+</table>
+</div>
+</div>
+</div>
+
+<!-- Keep your existing JavaScript code -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+   
+    var techCtx = document.getElementById("technologyChart").getContext("2d");
+        var techCounts = {{ data.tech_counts | tojson }};
+        const techChart = new Chart(techCtx, {
+            type: "pie",
+            data: {
+                labels: Object.keys(techCounts),
+                datasets: [{
+                    data: Object.values(techCounts),
+                    backgroundColor: [
+                        "#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0",
+                        "#9966FF", "#FF9F40", "#8AC249", "#FF6B6B",
+                        "#00CC99", "#FF99CC", "#6699FF", "#CC9933"
+                    ],
+                    borderColor: "#374151",
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                onClick: function (evt, elements) {
+                    if (elements.length > 0) {
+                        const index = elements[0].index;
+                        const label = this.data.labels[index];
+
+                        const dropdown = document.querySelector('select[data-column="5"]');
+                        if (dropdown) {
+                            dropdown.value = label;
+                            dropdown.dispatchEvent(new Event('change'));
+
+                            const httpxPanel = Array.from(document.querySelectorAll('.panel-title'))
+                                .find(el => el.textContent.includes("HTTPX Report"));
+                            if (httpxPanel) {
+                                httpxPanel.scrollIntoView({ behavior: 'smooth' });
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            color: '#000000'
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' + context.raw + ' occurrences';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        // Subdomain Chart
+    var subdomainCtx = document.getElementById("subdomainChart").getContext("2d");
+        var totalSubdomains = {{ data.subdomains | length }};
+        var activeSubdomains = {{ httpx_results | length }};
+        
+        new Chart(subdomainCtx, {
+            type: "bar",
+            data: {
+                labels: ["Total Subdomains", "Active Subdomains"],
+                datasets: [{
+                    label: "Count",
+                    data: [totalSubdomains, activeSubdomains],
+                    backgroundColor: ["#1f77b4", "#2ca02c"],
+                    borderColor: "#374151",
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y + ' subdomains';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: { 
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Subdomains',
+                            color: '#000000'
+                        },
+                        ticks: {
+                            color: '#000000'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: '#000000'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Web Server Distribution Chart - Fixed
+        var webserverCtx = document.getElementById("webserverChart").getContext("2d");
+        var webserverCounts = {};
+        
+        {% for result in httpx_results %}
+            {% if result.webserver and result.webserver != "none" and result.webserver != "-" %}
+                webserverCounts["{{ result.webserver }}"] = (webserverCounts["{{ result.webserver }}"] || 0) + 1;
+            {% endif %}
+        {% endfor %}
+
+        new Chart(webserverCtx, {
+            type: "bar",
+            data: {
+                labels: Object.keys(webserverCounts),
+                datasets: [{
+                    label: "Count",
+                    data: Object.values(webserverCounts),
+                    backgroundColor: [
+                        "#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", 
+                        "#9966FF", "#FF9F40", "#8AC249", "#FF6B6B"
+                    ],
+                    borderColor: "#374151",
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y + ' servers';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: { 
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Servers',
+                            color: '#000000'
+                        },
+                        ticks: {
+                            color: '#000000'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Web Server Types',
+                            color: '#000000'
+                        },
+                        ticks: {
+                            color: '#000000'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Top 5 Subdomains by Endpoint Count Chart
+        var topSubdomainCtx = document.getElementById("topSubdomainsChart").getContext("2d");
+        var topSubdomainLabels = {{ data.top_subdomain_labels | tojson }};
+        var topSubdomainCounts = {{ data.top_subdomain_counts | tojson }};
+        
+        new Chart(topSubdomainCtx, {
+            type: "bar",
+            data: {
+                labels: topSubdomainLabels,
+                datasets: [{
+                    label: "Number of Endpoints",
+                    data: topSubdomainCounts,
+                    backgroundColor: [
+                        "#FF6384", "#36A2EB", "#FFCE56", "#8BC34A", "#FF9800"
+                    ],
+                    borderColor: "#374151",
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y + ' endpoints';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Endpoints',
+                            color: '#000000'
+                        },
+                        ticks: {
+                            color: '#000000'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Subdomains',
+                            color: '#000000'
+                        },
+                        ticks: {
+                            color: '#000000'
+                        }
+                    }
+                }
+            }
+        });
+
+        // DNS Distribution Chart - Fixed
+        const dnsCtx = document.getElementById('dnsDistributionChart').getContext('2d');
+        const labels = [];
+        const data = [];
+        const backgroundColors = [
+            '#FF6384', '#36A2EB', '#FFCE56', 
+            '#4BC0C0', '#9966FF', '#FF9F40'
+        ];
+
+        // Count records by type
+        {% for record_type, records in dns_results.items() %}
+            labels.push("{{ record_type }}");
+            data.push({{ records|length }});
+        {% endfor %}
+
+        // Create bar chart
+        new Chart(dnsCtx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Number of Records',
+                    data: data,
+                    backgroundColor: backgroundColors,
+                    borderColor: '#374151',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y + ' records';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Records',
+                            color: '#000000'
+                        },
+                        ticks: {
+                            color: '#000000'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'DNS Record Types',
+                            color: '#000000'
+                        },
+                        ticks: {
+                            color: '#000000'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Login Page Distribution Chart
+        new Chart(
+            document.getElementById('loginDistributionChart').getContext('2d'),
+            {
+                type: 'bar',
+                data: {
+                    labels: ['Login Pages', 'Non-Login Pages'],
+                    datasets: [{
+                        label: 'Page Count',
+                        data: [{{ login_count }}, {{ non_login_count }}],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.7)',
+                            'rgba(54, 162, 235, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y + ' pages';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Pages',
+                                color: '#000000'
+                            },
+                            ticks: {
+                                color: '#000000'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#000000'
+                            }
+                        }
+                    }
+                }
+            }
+        );
+
+    </script>
+<script>
+document.querySelectorAll('.column-toggle').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        const colIndex = this.dataset.column;
+        const display = this.checked ? '' : 'none';
+        document.querySelectorAll(`table tr`).forEach(row => {
+            const cell = row.children[colIndex];
+            if (cell) cell.style.display = display;
+        });
+    });
+});
+</script>
+<script>
+document.querySelectorAll('.filter-dropdown').forEach(dropdown => {
+    dropdown.addEventListener('change', function () {
+        const filters = {};
+        document.querySelectorAll('.filter-dropdown').forEach(dd => {
+            const val = dd.value.toLowerCase();
+            if (val) filters[parseInt(dd.dataset.column)] = val;
+        });
+
+        document.querySelectorAll('table tbody tr').forEach(row => {
+            let visible = true;
+            for (const colIndex in filters) {
+                const cell = row.children[colIndex];
+                if (!cell || !cell.textContent.toLowerCase().includes(filters[colIndex])) {
+                    visible = false;
+                    break;
+                }
+            }
+            row.style.display = visible ? '' : 'none';
+        });
+    });
+});
+</script>
+
+</body>
+</html>
