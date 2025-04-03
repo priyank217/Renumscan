@@ -37,8 +37,8 @@ Renumscan is a reconnaissance tool developed to identify and collect all availab
 
 ## Installation & Usage
 
-### Installation on Kali Linux
-
+**Note: This script is designed to run only on Kali Linux. For other operating systems, please use Docker.**
+### Installation on **Kali Linux**
 ```bash
 git clone https://github.com/priyank217/Renumscan.git
 cd Renumscan
@@ -50,7 +50,7 @@ python3 main.py   //If getting error then try python main.py
 This will install dependencies and execute the scan.  
 The final report file will be saved in your current working directory within folder domain_report.
 
-## 🐳 Docker Setup (Cross-Platform)
+## 🐳 Docker Setup (Cross-Platform including Mac, Windows, RHEL, CentOs and oher linux  distribution)
 
 Renumscan also supports Docker for platform-independent usage.
 
