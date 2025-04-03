@@ -30,7 +30,6 @@ Renumscan is a reconnaissance tool developed to identify and collect all availab
   - Active subdomains with details (JSON)
   - Full list of discovered subdomains (TXT)
   - Self-contained, shareable HTML
-  -  
 ## Screenshot
 ![image](https://github.com/user-attachments/assets/46907ecd-78d5-4918-bf95-f8036d4a0beb)
 ![image](https://github.com/user-attachments/assets/e930cb6c-5035-4c09-a09d-5fab92abec17)
@@ -46,7 +45,7 @@ cd Renumscan
 sudo su
 chmod +x install.sh
 ./install.sh
-python3 main.py   // if getting error the try python main.py
+python3 main.py   //If getting error then try python main.py
 ```
 This will install dependencies and execute the scan.  
 The final report file will be saved in your current working directory within folder domain_report.
