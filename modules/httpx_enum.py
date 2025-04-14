@@ -49,7 +49,6 @@ def parse_httpx_json(json_file):
                     'a': entry.get('a'),
                     'ports': entry.get('ports'),
                     'technologies': entry.get('technologies'),
-                    'final-url': entry.get('final-url'),
                     'tls_version': entry.get('tls-grab', {}).get('tls_version'),
                     'issuer_organization': entry.get('tls-grab', {}).get('issuer_organization'),
                     'fingerprint_sha256': entry.get('tls-grab', {}).get('fingerprint_sha256'),
