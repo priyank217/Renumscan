@@ -114,7 +114,7 @@
 </div>
 </div>
 
-<!-- First Row: Summary Charts -->
+<!-- First Row -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
 <!-- Subdomain Overview -->
 <div class="panel">
@@ -134,7 +134,7 @@
 </div>
 </div>
 </div>
-<!-- Technology Distribution -->
+ <!-- Top 5 Subdomains -->
 <div class="panel">
 <div class="panel-title">Top 5 Subdomain with most number of endpoint</div>
 <div class="panel-content">
@@ -142,9 +142,12 @@
 <canvas id="topSubdomainsChart"></canvas>
 </div>
 </div>
-</div></div>
-<!-- Second Row: More Charts -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"><div class="panel">
+</div>
+</div>
+<!-- Second Row -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+<!-- Technology Distribution -->
+<div class="panel">
 <div class="panel-title">Technology Footprint</div>
 <div class="panel-content">
 <div class="chart-container">
@@ -152,7 +155,6 @@
 </div>
 </div>
 </div>
-<!-- Top 5 Subdomains -->
 <!-- DNS Records -->
 <div class="panel">
 <div class="panel-title">DNS Configuration Overview</div>
@@ -162,6 +164,44 @@
 </div>
 </div>
 </div>
+</div>
+<!-- Third Row -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+    <!-- TLS Version Usage Chart -->
+    <div class="panel">
+      <div class="panel-title">TLS Version Usage</div>
+      <div class="panel-content">
+        <div class="chart-container">
+          <canvas id="tlsVersionChart"></canvas>
+        </div>
+      </div>
+    </div>
+    <!-- Certificate Issuer Chart -->
+    <div class="panel">
+      <div class="panel-title">Certificate Issuer</div>
+      <div class="panel-content">
+        <div class="chart-container">
+          <canvas id="certIssuerChart"></canvas>
+        </div>
+      </div>
+    </div>
+  <!-- Login Page -->
+  <div class="panel">
+    <div class="panel-title">Login Page</div>
+    <div class="panel-content">
+      <div class="chart-container">
+        <canvas id="loginDistributionChart"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">Number of Open Ports </div>
+    <div class="panel-content">
+      <div class="chart-container">
+        <canvas id="openPortsChart"></canvas>
+      </div>
+    </div>
+  </div>
 </div>
 <!-- WHOIS and DNS Reports -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -328,7 +368,7 @@
 <!-- Web Application Discoveries -->
 <div class="panel mb-4">
 <div class="panel-title">Web Application Discoveries for {{ domain }}</div>
-<div class="panel-content auto-scroll">
+<div class="panel-content auto-scroll" style="max-height: 800p">
 <div class="mb-2 flex flex-wrap gap-4"></div><table>
 <thead>
 <tr>
@@ -337,11 +377,16 @@
 <th>Host</th>
 <th>Chain Status Codes</th>
 <th>Status Code</th>
+<th>A Records</th>
+<th>Open Ports</th>
 <th>Technologies</th>
+<th>TLS Version</th>
+<th>Certificate Issuer</th>
+<th>Certificate Hash</th>
 <th>Final URL</th>
 </tr>
 <tr>
-        {% for col in ['url', 'webserver', 'host', 'chain-status-codes', 'status-code', 'technologies', 'final-url'] %}
+        {% for col in ['url', 'webserver', 'host', 'chain-status-codes', 'status-code', 'a', 'ports', 'technologies','tls_version','issuer_organization','fingerprint_sha256', 'final-url'] %}
         <td class="px-2 py-1 border">
 <select class="filter-dropdown w-full text-sm border rounded px-1 py-0.5" data-column="{{ loop.index0 }}">
 <option value="">All</option>
@@ -361,7 +406,12 @@
 <td>{{ result.host }}</td>
 <td>{{ result['chain-status-codes'] }}</td>
 <td>{{ result['status-code'] }}</td>
+<td>{{ result['a'] }}</td>
+<td>{{ result['ports'] }}</td>
 <td>{{ result.technologies }}</td>
+<td>{{ result['tls_version'] }}</td>
+<td>{{ result['issuer_organization'] }}</td>
+<td>{{ result.fingerprint_sha256 }}</td>
 <td><a class="text-blue-600" href="{{ result['final-url'] }}" target="_blank">{{ result['final-url'] }}</a></td>
 </tr>
                 {% endfor %}
@@ -466,13 +516,13 @@
                         const index = elements[0].index;
                         const label = this.data.labels[index];
 
-                        const dropdown = document.querySelector('select[data-column="5"]');
+                        const dropdown = document.querySelector('select[data-column="7"]');
                         if (dropdown) {
                             dropdown.value = label;
                             dropdown.dispatchEvent(new Event('change'));
 
                             const httpxPanel = Array.from(document.querySelectorAll('.panel-title'))
-                                .find(el => el.textContent.includes("HTTPX Report"));
+                                .find(el => el.textContent.includes("Web Application Discoveries"));
                             if (httpxPanel) {
                                 httpxPanel.scrollIntoView({ behavior: 'smooth' });
                             }
@@ -791,8 +841,171 @@
                 }
             }
         );
+        // TLS Version Usage Chart
+var tlsCounts = {{ tls_version_counts | tojson }};
 
-    </script>
+new Chart(document.getElementById("tlsVersionChart").getContext("2d"), {
+  type: "bar",
+  data: {
+    labels: Object.keys(tlsCounts),
+    datasets: [{
+      label: "Usage Count",
+      data: Object.values(tlsCounts),
+      backgroundColor: "#36A2EB",
+      borderColor: "#374151",
+      borderWidth: 1
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            return context.parsed.y + ' hosts';
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: {
+          display: true,
+          text: 'Number of Hosts',
+          color: '#000000'
+        },
+        ticks: { color: '#000000' }
+      },
+      x: {
+        ticks: { color: '#000000' }
+      }
+    }
+  }
+});
+
+
+// Certificate Issuer Chart
+var issuerCounts = {{ issuer_organization_counts | tojson }};
+new Chart(document.getElementById("certIssuerChart").getContext("2d"), {
+  type: "bar",
+  data: {
+    labels: Object.keys(issuerCounts),
+    datasets: [{
+      label: "Certificate Count",
+      data: Object.values(issuerCounts),
+      backgroundColor: "#FF6384",
+      borderColor: "#374151",
+      borderWidth: 1
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    onClick: function (evt, elements) {
+  if (elements.length > 0) {
+    const index = elements[0].index;
+    const label = this.data.labels[index];
+
+    const dropdown = document.querySelector('select[data-column="9"]');
+    if (dropdown) {
+      dropdown.value = label;
+      dropdown.dispatchEvent(new Event('change'));
+
+      const httpxPanel = Array.from(document.querySelectorAll('.panel-title'))
+        .find(el => el.textContent.includes("Web Application Discoveries"));
+      if (httpxPanel) {
+        httpxPanel.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  }
+},
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            return context.parsed.y + ' certs';
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: {
+          display: true,
+          text: 'Number of Certificates',
+          color: '#000000'
+        },
+        ticks: { color: '#000000' }
+      },
+      x: {
+        ticks: { color: '#000000' }
+      }
+    }
+  }
+});
+
+const portCtx = document.getElementById("openPortsChart").getContext("2d");
+const portLabels = {{ port_numbers | tojson }};
+const portData = {{ port_counts | tojson }};
+
+new Chart(portCtx, {
+    type: "bar",
+    data: {
+        labels: portLabels,
+        datasets: [{
+            label: "Open Ports Count",
+            data: portData,
+            backgroundColor: [
+                "#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0",
+                "#9966FF", "#FF9F40", "#8AC249", "#FF6B6B",
+                "#3F51B5", "#00BCD4", "#CDDC39", "#FF5722"
+            ],
+            borderColor: "#374151",
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.parsed.y + ' hosts';
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Number of Hosts',
+                    color: '#000000'
+                },
+                ticks: { color: '#000000' }
+            },
+            x: {
+                title: {
+                    display: true,
+                    text: 'Open Port Numbers',
+                    color: '#000000'
+                },
+                ticks: { color: '#000000' }
+            }
+        }
+    }
+});
+
+
+</script>
 <script>
 document.querySelectorAll('.column-toggle').forEach(checkbox => {
     checkbox.addEventListener('change', function() {
