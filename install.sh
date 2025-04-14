@@ -15,6 +15,7 @@ SYSTEM_TOOLS=(
     "assetfinder"
     "sublist3r"
     "httpx-toolkit"
+    "naabu"
 )
 
 # Required Python packages
@@ -121,4 +122,4 @@ fi
 
 echo -e "\n${GREEN}Installation Complete!${NC}"
 echo -e "Run Renumscan with: ${CYAN}${PY_CMD} main.py${NC}"
-echo -e "Available tools: ${CYAN}assetfinder, sublist3r, httpx${NC}"
+echo -e "Available tools: ${CYAN}assetfinder, sublist3r, httpx, naabu${NC}"
