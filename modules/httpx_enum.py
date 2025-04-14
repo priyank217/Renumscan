@@ -11,7 +11,7 @@ def run_httpx_toolkit(domain):
         json_file = os.path.join(folder_name, f"{domain}_httpx_results.json")
         result = subprocess.run(
             ['httpx-toolkit', '-l', os.path.join(folder_name, f"{domain}_merged_subdomains.txt"),
-             "-status-code", "-tech-detect", "-follow-redirects", '-json', '-o', json_file],
+             "-status-code", "-tech-detect", "-follow-redirects", "-tls-grab" , "-tls-probe",'-json', '-o', json_file],
             capture_output=True, text=True
         )
         if result.returncode == 0:
@@ -46,7 +46,13 @@ def parse_httpx_json(json_file):
                     'host': entry.get('host'),
                     'chain-status-codes': entry.get('chain-status-codes'),
                     'status-code': entry.get('status-code'),
+                    'a': entry.get('a'),
+                    'ports': entry.get('ports'),
                     'technologies': entry.get('technologies'),
+                    'final-url': entry.get('final-url'),
+                    'tls_version': entry.get('tls-grab', {}).get('tls_version'),
+                    'issuer_organization': entry.get('tls-grab', {}).get('issuer_organization'),
+                    'fingerprint_sha256': entry.get('tls-grab', {}).get('fingerprint_sha256'),
                     'final-url': entry.get('final-url')
                 })
     except Exception as e:
