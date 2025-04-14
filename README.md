@@ -29,24 +29,28 @@ Renumscan is a reconnaissance tool developed to identify and collect all availab
   - Endpoint results (JSON)
   - Active subdomains with details (JSON)
   - Full list of discovered subdomains (TXT)
-  - Self-contained, shareable HTML report
+  - Self-contained, shareable HTML
+## Screenshot
+![image](https://github.com/user-attachments/assets/46907ecd-78d5-4918-bf95-f8036d4a0beb)
+![image](https://github.com/user-attachments/assets/e930cb6c-5035-4c09-a09d-5fab92abec17)
+![image](https://github.com/user-attachments/assets/06c3398b-b954-4c76-a4db-c9e39199eeb6)
 
 ## Installation & Usage
 
-### Installation on Kali Linux
-
+**Note: This script is designed to run only on Kali Linux. For other operating systems, please use Docker.**
+### Installation on **Kali Linux**
 ```bash
 git clone https://github.com/priyank217/Renumscan.git
 cd Renumscan
 sudo su
 chmod +x install.sh
 ./install.sh
-python3 main.py   // if getting error the try python main.py
+python3 main.py   //If getting error then try python main.py
 ```
 This will install dependencies and execute the scan.  
 The final report file will be saved in your current working directory within folder domain_report.
 
-## 🐳 Docker Setup (Cross-Platform)
+## 🐳 Docker Setup (Cross-Platform including Mac, Windows, RHEL, CentOs and oher linux  distribution)
 
 Renumscan also supports Docker for platform-independent usage.
 
