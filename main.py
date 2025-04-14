@@ -15,8 +15,8 @@ def main():
     
     subdomains = get_subdomains(domain)
 
-    httpx_json_fil = run_httpx_toolkit(domain)
-    httpx_json_file= run_port_scan(domain, httpx_json_fil)
+    httpx_json = run_httpx_toolkit(domain)
+    httpx_json_file= run_port_scan(domain, httpx_json)
     print(httpx_json_file)
     report = {}
 
