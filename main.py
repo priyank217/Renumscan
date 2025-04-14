@@ -1,6 +1,5 @@
 import json
 import os
-import csv
 from modules.dns_enum import run_dnsrecon, parse_dnsrecon_csv
 from modules.endpoint_enum import fetch_endpoints
 from modules.report import generate_dashboard
@@ -9,13 +8,16 @@ from modules.sslcertificate_enum import fetch_certificate_info, run_sslscan, par
 from modules.subdomain_enum import get_subdomains
 from modules.whois_enum import get_whois_info
 from modules.loginpage_enum import analyze_login_interfaces
+from modules.port_enum import run_port_scan
 
 def main():
     domain = input("Enter the domain: ")
     
     subdomains = get_subdomains(domain)
 
-    httpx_json_file = run_httpx_toolkit(domain)
+    httpx_json_fil = run_httpx_toolkit(domain)
+    httpx_json_file= run_port_scan(domain, httpx_json_fil)
+    print(httpx_json_file)
     report = {}
 
     if httpx_json_file:
