@@ -17,7 +17,6 @@ def main():
 
     httpx_json = run_httpx_toolkit(domain)
     httpx_json_file= run_port_scan(domain, httpx_json)
-    print(httpx_json_file)
     report = {}
 
     if httpx_json_file:
