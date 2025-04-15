@@ -10,6 +10,9 @@ Renumscan is a reconnaissance tool developed to identify and collect all availab
 - **IP Address and Server Discovery**  
   Discovers IP addresses and collects metadata about public-facing servers.
 
+- **Port Scanning**  
+  Scans discovered IP addresses for open ports using Naabu, helping identify exposed entry points.
+
 - **Technology Fingerprinting**  
   Detects the technologies used on the organization’s web assets (e.g., CMS, frameworks, databases, etc.).
 
@@ -32,8 +35,9 @@ Renumscan is a reconnaissance tool developed to identify and collect all availab
   - Self-contained, shareable HTML
 ## Screenshot
 ![image](https://github.com/user-attachments/assets/46907ecd-78d5-4918-bf95-f8036d4a0beb)
+![image](https://github.com/user-attachments/assets/5caac7e1-1b5d-4057-b054-f181ba1b7590)
 ![image](https://github.com/user-attachments/assets/e930cb6c-5035-4c09-a09d-5fab92abec17)
-![image](https://github.com/user-attachments/assets/06c3398b-b954-4c76-a4db-c9e39199eeb6)
+![image](https://github.com/user-attachments/assets/d0e8100c-f624-4118-b704-26a4a3de9107)
 
 ## Installation & Usage
 
@@ -80,7 +84,7 @@ After the scan is complete, you’ll find the `domain_report` directory inside y
 ## To-Do List
 - [ ] Risk scoring and prioritization based on identified assets and exposure levels
 - [ ] Leaked data check using breach databases or open-source APIs  
-- [ ] IP address scanning for open ports and services (e.g., using Nmap,Masscan or rustscan)  
+- [x] IP address scanning for open ports and services.
 - [ ] IP rotation during scanning to avoid detection and rate-limiting  
 - [ ] Parallel processing to increase scan efficiency and reduce runtime  
 - [ ] Social media and employee footprint analysis (open-source intelligence)  
